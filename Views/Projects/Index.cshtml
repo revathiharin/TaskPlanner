@@ -1,0 +1,59 @@
+﻿
+@model IEnumerable<TaskPlanner.Models.Project>
+
+
+@{
+    ViewData["Title"] = "Task Planner";
+}
+
+<div class="app">
+    <aside class="sidebar">
+        <h2>Projects</h2>
+        <ul id="projectList">
+            @foreach (var project in Model)
+            {
+                <li class="project-item" data-id="@project.Id">@project.Name</li>
+            }
+        </ul>
+        <form id="addProjectForm" method="post" action="/Projects/Create">
+            <input type="text" name="name" placeholder="New Project" required />
+            <button type="submit">+</button>
+        </form>
+    </aside>
+
+    <main class="main-content">
+        <h2>Tasks</h2>
+        <!-- SortBy Dropdown -->
+        <div style="text-align: right; margin-bottom: 10px;">
+            <label for="sortBy">Sort By:</label>
+            <select id="sortBy" name="sortBy">
+                <option value="A-Z">A-Z</option>
+                <option value="Z-A">Z-A</option>
+                <option value="Completed">Completed</option>
+                <option value="Manual">Manual</option>
+            </select>
+        </div>
+
+        <ul id="taskList" class="connectedSortable">
+            <!-- Tasks will be loaded here based on selected project -->
+        </ul>
+
+        <form id="addTaskForm" method="post" action="/Tasks/Create" style="display: none;">
+            <input type="hidden" name="projectId" id="projectId" />
+            <input type="text" name="title" id="taskTitle" placeholder="New Task" required />
+            <button type="submit">+</button>
+        </form>
+    </main>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="@Url.Content("~/css/Projects.css")" />
+}
+
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script src="~/js/Projects.js"></script>
+}
+

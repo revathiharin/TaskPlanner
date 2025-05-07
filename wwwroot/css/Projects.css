@@ -1,0 +1,150 @@
+﻿body {
+    margin: 0;
+    font-family: "Segoe UI", sans-serif;
+    background-color: #f4f4f4;
+}
+
+.app {
+    display: flex;
+    height: 100vh;
+}
+
+.sidebar {
+    width: 280px;
+    background: #f9f6f3;
+    padding: 20px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+    overflow-y: auto;
+}
+
+    .sidebar h2 {
+        margin-bottom: 15px;
+    }
+
+    .sidebar ul {
+        list-style: none;
+        padding: 0;
+        margin-bottom: 20px;
+    }
+
+    .sidebar li {
+        background: #e9ecef;
+        margin-bottom: 8px;
+        padding: 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background 0.2s ease;
+    }
+
+        .sidebar li:hover {
+            background: #d1d1d1;
+        }
+
+    .sidebar form {
+        display: flex;
+    }
+
+    .sidebar input[type="text"] {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px 0 0 5px;
+    }
+
+    .sidebar button {
+        padding: 10px 15px;
+        border: none;
+        background: #007bff;
+        color: #fff;
+        border-radius: 0 5px 5px 0;
+        cursor: pointer;
+    }
+
+.main-content {
+    flex: 1;
+    padding: 40px;
+    overflow-y: auto;
+}
+
+    .main-content h2 {
+        margin-bottom: 20px;
+        font-size: 24px;
+        color: #333;
+    }
+
+#taskList {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    width: 300px;
+}
+
+    #taskList li {
+        background: #fff;
+        padding: 12px;
+        margin-bottom: 10px;
+        border-radius: 6px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+        display: inline-block;
+        align-items: center;
+        white-space: nowrap;
+    }
+
+    #taskList input[type="checkbox"] {
+        margin-right: 10px;
+    }
+
+#addTaskForm {
+    display: flex;
+}
+
+    #addTaskForm input[type="text"] {
+        flex: 1;
+        padding: 10px;
+        border-radius: 5px 0 0 5px;
+        border: 1px solid #ccc;
+    }
+
+    #addTaskForm button {
+        padding: 10px 15px;
+        border: none;
+        border-radius: 0 5px 5px 0;
+        background: #28a745;
+        color: #fff;
+        cursor: pointer;
+    }
+
+        #addTaskForm button:hover {
+            background: #218838;
+        }
+
+.selected {
+    background-color: #cfe2ff !important;
+    font-weight: bold;
+    color: #084298;
+}
+
+.task-item {
+    cursor: move;
+}
+
+.ui-state-highlight {
+    background: #f0f0f0;
+    border: 1px dashed #aaa;
+    height: 40px;
+}
+
+.ui-state-highlight {
+    height: 40px;
+    background: #e0e0e0;
+    border: 2px dashed #999;
+    margin: 5px 0;
+}
+
+.highlight-drop {
+    background-color: rgba(0, 123, 255, 0.1);
+    /* border: 2px dashed #007bff; */
+    border: 2px dashed #ff0000;
+}
