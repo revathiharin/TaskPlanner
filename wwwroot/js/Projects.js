@@ -45,7 +45,6 @@ function loadTasks(projectId) {
             const sortedTasks = sortTasks(tasksTemp, sortBy);
             console.log("loadTasks", sortBy, tasksTemp, sortedTasks);
             
-*/
             console.log('/Tasks/GetTasks', sortedTasks);
             $("#taskList").empty(); // Clear the current task list
             sortedTasks.forEach(task => {
