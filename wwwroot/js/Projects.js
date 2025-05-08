@@ -15,7 +15,7 @@
 }
 
 // Function to sort tasks based on criteria
-function sortTasks(tasks, sortBy) {
+/*function sortTasks(tasks, sortBy) {
     let sortedTasks;
 
     if (sortBy === 'A-Z') {
@@ -31,7 +31,7 @@ function sortTasks(tasks, sortBy) {
     }
 
     return sortedTasks;
-}
+}*/
 
 function loadTasks(projectId) {
     $.ajax({
@@ -39,17 +39,18 @@ function loadTasks(projectId) {
         type: 'GET',
         data: { projectId: projectId },
         success: function (response) {
+            console.log("Response in loadtask ", response);
             const sortBy = response.sortBy.sortBy;
             $("#sortBy").val(sortBy);
             const tasksTemp = response.tasks;
             const sortedTasks = sortTasks(tasksTemp, sortBy);
-            console.log("loadTasks", sortBy, tasksTemp, sortedTasks);
+           console.log("loadTasks",  sortedTasks);
             
-            console.log('/Tasks/GetTasks', sortedTasks);
+            //console.log('/Tasks/GetTasks', sortedTasks);
             $("#taskList").empty(); // Clear the current task list
             sortedTasks.forEach(task => {
 
-                console.log(task.t.title);
+                //console.log(task.t.title);
                 $("#taskList").append(`
                     <li data-id="${task.t.id}" class="task-item">
                         <input type="checkbox" class="task-completion" ${task.t.isCompleted ? 'checked' : ''} />
@@ -58,12 +59,15 @@ function loadTasks(projectId) {
                 `);
             });
 
+            // Update the sort order in the database for the loaded tasks
+            updateSortOrderInDatabase(sortedTasks);
+
             // Enable sortable only if sortBy is 'Manual'
-            if (sortBy === 'Manual') {
+            /*if (sortBy === 'Manual') {
                 $("#taskList").sortable("enable");
             } else {
                 $("#taskList").sortable("disable");
-            }
+            }*/
         },
         error: function () {
             console.error("Error loading tasks for project ID:", projectId);
@@ -78,7 +82,7 @@ function enableProjectDroppable() {
             accept: ".task-item",
             hoverClass: "highlight-drop",
             drop: function (event, ui) {
-                console.log('MoveTaskToProject');
+                //console.log('MoveTaskToProject');
                 const newProjectId = $(this).data("id");
                 const taskId = ui.draggable.data("id");
 
@@ -104,7 +108,57 @@ function enableProjectDroppable() {
 }
 
 
+function sortTasks(tasks, sortBy) {
+    let sortedTasks;
+
+    if (sortBy === 'A-Z') {
+        sortedTasks = tasks.sort((a, b) => {
+            if (a.t.isCompleted === b.t.isCompleted) {
+                return a.t.title.localeCompare(b.t.title);
+            }
+            return a.t.isCompleted ? 1 : -1; // Completed tasks go down
+        });
+    } else if (sortBy === 'Z-A') {
+        sortedTasks = tasks.sort((a, b) => {
+            if (a.t.isCompleted === b.t.isCompleted) {
+                return b.t.title.localeCompare(a.t.title);
+            }
+            return a.t.isCompleted ? 1 : -1; // Completed tasks go down
+        });
+    } else if (sortBy === 'Completed') {
+        sortedTasks = tasks.sort((a, b) => {
+            return (b.t.isCompleted - a.t.isCompleted) || (a.t.sortOrder - b.t.sortOrder);
+        });
+    } else if (sortBy === 'Manual') {
+        sortedTasks = tasks.sort((a, b) => a.t.sortOrder - b.t.sortOrder);
+    }
+    //console.log("sortedTasks  ", sortedTasks);
+    return sortedTasks;
+}
+
+function updateSortOrderInDatabase(tasks) {
+    const hasTProperty = tasks.length > 0 && tasks[0].t !== undefined;
+    const updatedTasks = tasks.map((task, index) => ({
+        id: hasTProperty ? task.t.id : task.id,
+        sortOrder: index
+    }));
+    //console.log(" updateSortOrderInDatabase ", updatedTasks);
+    $.ajax({
+        url: '/Tasks/UpdateSortOrder',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ tasks: updatedTasks }),
+        success: function (response) {
+            console.log("Sort order updated in the database.", response);
+        },
+        error: function () {
+            console.error("Error updating sort order in the database.");
+        }
+    });
+}
+
 $(function () {
+    
     // Project click
     $("#projectList").on("click", "li", function () {
         const projectId = $(this).data("id");
@@ -114,18 +168,18 @@ $(function () {
         $("#addTaskForm").show();
         // Show main content when a project is selected
         $("main.main-content").show();
-        console.log("Clicked");
+        //console.log("Clicked");
         loadTasks(projectId);
         
     });
 
     $('#sortBy').change(function () {
-
         const select = $('#sortBy');
         const value = select.val();
         const projectId = $("#projectId").val();
+        
         var data = JSON.stringify({ projectId: projectId, sortBy: value });
-        console.log("Databased : ", projectId, value);
+        //console.log("Databased : ", projectId, value);
         //UpdateSortBy(projectId, value); // Call the UpdateSortBy function when the value changes
         $.ajax({
             url: '/Projects/UpdateSortBy', // Adjust the controller name as needed
@@ -147,6 +201,7 @@ $(function () {
         const taskId = $(this).closest("li").data("id");
         const isCompleted = $(this).is(":checked");
         $.post('/Tasks/UpdateCompletion', { id: taskId, isCompleted });
+        loadTasks($("#projectId").val());
     });
 
     
@@ -158,17 +213,20 @@ $(function () {
             update: function () {
                 const updatedTasks = [];
                 const projectId = $("#projectId").val();
-
+                if ($('#sortBy').val() !== 'Manual') {
+                    $('#sortBy').val('Manual').change(); // Set to Manual and trigger change event
+                }
                 $("#taskList li").each(function (index) {
                     const taskId = $(this).data("id");
+
                     updatedTasks.push({
                         id: taskId,
                         sortOrder: index,
                         projectId: projectId
                     });
                 });
-
-                $.ajax({
+                console.log("updatedTasks ", updatedTasks);
+               /* $.ajax({
                     url: '/Tasks/ReorderAndMoveTasks',
                     type: 'POST',
                     contentType: 'application/json',
@@ -179,7 +237,11 @@ $(function () {
                     error: function () {
                         console.error("Error updating task data.");
                     }
-                });
+                });*/
+
+                // Update the sort order in the database
+                updateSortOrderInDatabase(updatedTasks);
+               
             }
         }).disableSelection();
     
@@ -202,4 +264,7 @@ $(function () {
             alert("Please enter a task title.");
         }
     });
+    if ($("#projectId").val()) {
+        loadTasks($("#projectId").val());
+    }
 });

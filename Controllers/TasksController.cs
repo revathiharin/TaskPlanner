@@ -5,6 +5,13 @@ using TaskPlanner.Models;
 
 namespace TaskPlanner.Controllers
 {
+
+    // DTO for task sorting
+    public class TaskSortOrderDto
+    {
+        public int Id { get; set; }
+        public int SortOrder { get; set; }
+    }
     public class TasksController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -66,14 +73,14 @@ namespace TaskPlanner.Controllers
             // Fetch the SortBy value from the Projects table based on the projectId
             var sortBy = _context.Projects
                 .Where(p => p.Id == projectId)
-                .Select(p => new {p.SortBy}).ToList()
+                .Select(p => new { p.SortBy }).ToList()
                 .FirstOrDefault(); // Get the SortBy value for the specific project
 
 
             var tasks = _context.Tasks
                         .Where(t => t.ProjectId == projectId)
                         .OrderBy(t => t.SortOrder)
-                        .Select(t => new {t})
+                        .Select(t => new { t })
                         .ToList();
             Console.WriteLine("GetTasks called. SortBy: " + sortBy + ", Tasks Count: " + tasks.Count);
             return Json(new { SortBy = sortBy, Tasks = tasks });
@@ -114,6 +121,31 @@ namespace TaskPlanner.Controllers
             return Ok();
         }
 
+        [HttpPost]
+        public IActionResult UpdateSortOrder([FromBody] UpdateSortOrderRequest request)
+        {
+            if (request.tasks == null || !request.tasks.Any())
+            {
+                return Json(new { success = false, message = "No tasks provided." });
+            }
+
+            // Update the SortOrder for each task
+            foreach (var task in request.tasks)
+            {
+                var existingTask = _context.Tasks.Find(task.Id);
+                if (existingTask != null)
+                {
+                    existingTask.SortOrder = task.SortOrder; // Update the SortOrder
+                }
+            }
+
+            // Save changes to the database
+            _context.SaveChanges();
+
+            return Json(new { success = true });
+        }
+
+
 
         /*
                 [HttpPost]
@@ -135,4 +167,16 @@ namespace TaskPlanner.Controllers
                 }*/
 
     }
+
+    public class UpdateSortOrderRequest
+    {
+        public List<TaskDto> tasks { get; set; }
+    }
+
+    public class TaskDto
+    {
+        public int Id { get; set; }
+        public int SortOrder { get; set; }
+    }
 }
+
